@@ -24,8 +24,8 @@ COPY phpbb-s3-backup.sh /usr/local/bin/phpbb-s3-backup
 
 ENV \
   BACKUP_SCHEDULE='0 4 * * *' \
-  DB_CP_OPTS='--quiet' \
-  DIR_SYNC_OPTS='--quiet --size-only --exclude .htaccess --exclude index.htm' \
+  DB_CP_OPTS= \
+  DIR_SYNC_OPTS='--size-only --exclude .htaccess --exclude index.htm' \
   DBHOST=mysql \
   DBPORT= \
   DBNAME=phpbb \
