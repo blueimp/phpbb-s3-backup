@@ -51,10 +51,31 @@ directory_backup() {
     && echo "Synced directory $1 to $s3_url."
 }
 
-# Run the backup functions in parallel:
-database_backup &
-directory_backup files &
-directory_backup images/avatars/upload &
+# Waits for the background processes to complete.
+# Returns exit code 0 if all succeeded, else exit code 1:
+wait_and_exit() {
+  local exit_code=0
+  local pid
+  for pid in $PIDS; do
+    wait $pid
+    if [ ! $? -eq 0 ]; then
+      exit_code=1
+    fi
+  done
+  exit $exit_code
+}
 
-# Wait for the background processes to complete:
-wait
+# Runs the given command line as background job:
+run() {
+  "$@" & PIDS="$PIDS $!"
+}
+
+# Variable holding the PIDs of the background jobs:
+PIDS=
+
+# Run the backup functions in parallel:
+run database_backup
+run directory_backup files
+run directory_backup images/avatars/upload
+
+wait_and_exit
