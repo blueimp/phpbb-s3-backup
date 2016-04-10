@@ -12,7 +12,7 @@
 test_required_variables() {
   local var
   for var in "$@"; do
-    if eval 'test -z "\$$var"'; then
+    if eval 'test -z "$'$var'"'; then
       echo "Error: $var is not defined." >&2
       exit 1
     fi
