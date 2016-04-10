@@ -4,9 +4,11 @@ FROM blueimp/awscli
 
 MAINTAINER Sebastian Tschan <mail@blueimp.net>
 
-# Install mysqldump via mariadb-client:
+# Install mariadb-client (includes mysqldump), curl and jq:
 RUN apk --no-cache add \
-      mariadb-client
+      mariadb-client \
+      curl \
+      jq
 
 # Install log - a script to execute a given command and log the output:
 ADD https://raw.githubusercontent.com/blueimp/container-tools/2.2.0/bin/log.sh \
@@ -19,11 +21,16 @@ COPY envconfig.conf /usr/local/etc/
 # Add the crontab for the user nobody:
 COPY crontab /var/spool/cron/crontabs/nobody
 
-# Add the phpBB S3 backup script
+# Add the phpBB S3 backup script:
 COPY phpbb-s3-backup.sh /usr/local/bin/phpbb-s3-backup
+
+# Add the phpBB auto-update script:
+COPY phpbb-auto-update.sh /usr/local/bin/phpbb-auto-update
 
 ENV \
   BACKUP_SCHEDULE='0 4 * * *' \
+  UPDATE_SCHEDULE='0 5 * * *' \
+  BACKUP_BEFORE_UPDATE=true \
   DB_CP_OPTS= \
   DIR_SYNC_OPTS='--size-only --exclude .htaccess --exclude index.htm' \
   DBHOST=mysql \

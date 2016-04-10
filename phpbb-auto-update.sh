@@ -1,0 +1,68 @@
+#!/bin/sh
+
+#
+# Uploads backups of the phpBB database and user file uploads to Amazon S3.
+#
+# Requires awscli and mysqldump.
+#
+# Usage: ./phpbb-s3-backup.sh
+#
+
+# Exit immediately if a command exits with a non-zero status:
+set -e
+
+# URL to the official list of phpBB versions:
+VERSIONS_URL=https://version.phpbb.com/phpbb/versions.json
+
+# Retrieve the latest stable version from the phpBB versions URL:
+LATEST_VERSION=$(curl -sL $VERSIONS_URL |
+  jq -r '.stable["'${BASE_VERSION:-3.1}'"].current')
+
+# Retrieve the currently installed version from the database:
+SQL="
+  SELECT config_value
+  FROM ${TABLE_PREFIX:-phpbb_}config
+  WHERE config_name='version';
+"
+CURRENT_VERSION="$(echo "$SQL" |
+  mysql \
+  --skip-column-names \
+  --host="$DBHOST" \
+  --port="${DBPORT:-3306}" \
+  --user="$DBUSER" \
+  --password="$DBPASSWD" \
+  "$DBNAME")"
+
+if [ "$LATEST_VERSION" = "$CURRENT_VERSION" ]; then
+  echo "phpBB version $CURRENT_VERSION is up-to-date."
+  exit
+fi
+
+echo "phpBB version $CURRENT_VERSION is out-of-date."
+echo "phpBB version $LATEST_VERSION is available."
+
+if [ -z "$UPDATE_TRIGGER_URL" ]; then
+  echo "Warning: UPDATE_TRIGGER_URL is not defined." >&2
+  exit 1
+fi
+
+if [ "$BACKUP_BEFORE_UPDATE" = true ]; then
+  phpbb-s3-backup
+fi
+
+# Send a POST request to the given URL.
+# If the URL is a Docker Hub Trigger URL, it will trigger an Automated Build:
+printf 'Trigger URL response code: '
+if curl -s -f \
+    -H 'Content-Type: application/json' \
+    -d '{"build": true}' \
+    -o /dev/null \
+    -w '%{http_code}' \
+    "$UPDATE_TRIGGER_URL"; then
+  echo
+  echo 'Update request sent.'
+else
+  echo
+  echo 'Update request failed.' >&2
+  exit 1
+fi

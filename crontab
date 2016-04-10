@@ -9,3 +9,6 @@
 
 # Schedule the phpBB S3 backup:
 {{BACKUP_SCHEDULE}} log phpbb-s3-backup
+
+# Schedule the phpBB auto-update:
+{{UPDATE_SCHEDULE}} log phpbb-auto-update
