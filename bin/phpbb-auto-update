@@ -1,4 +1,5 @@
 #!/bin/sh
+# shellcheck shell=dash
 
 #
 # Uploads backups of the phpBB database and user file uploads to Amazon S3.

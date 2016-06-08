@@ -1,31 +1,41 @@
 # phpBB S3 Backup Dockerfile
 
-FROM blueimp/awscli
+FROM alpine:3.4
 
 MAINTAINER Sebastian Tschan <mail@blueimp.net>
 
-# Install mariadb-client (includes mysqldump), curl and jq:
 RUN apk --no-cache add \
-      mariadb-client \
-      curl \
-      jq
+    # tini is a tiny but valid `init` for containers:
+    tini \
+    # mariadb-client includes mysqldump for the phpbb backup:
+    mariadb-client \
+    # curl and jq are used for the phpbb auto-update functionality:
+    curl \
+    jq \
+    # awscli dependencies:
+    py-pip \
+    groff \
+    less \
+  && pip install --upgrade \
+    pip \
+    awscli \
+  # Clean up obsolete files:
+  && rm -rf \
+    # Clean up any temporary files:
+    /tmp/* \
+    # Clean up the pip cache:
+    /root/.cache \
+    # Remove any compiled python files (compile on demand):
+    `find / -regex '.*\.py[co]'`
 
-# Install log - a script to execute a given command and log the output:
-ADD https://raw.githubusercontent.com/blueimp/container-tools/2.2.0/bin/log.sh \
-  /usr/local/bin/log
-RUN chmod 755 /usr/local/bin/log
+# Add the envconfig, log, phpbb-s3-backup and phpbb-auto-update scripts:
+COPY bin /usr/local/bin
 
 # Copy the envconfig config file:
 COPY envconfig.conf /usr/local/etc/
 
 # Add the crontab for the user nobody:
 COPY crontab /var/spool/cron/crontabs/nobody
-
-# Add the phpBB S3 backup script:
-COPY phpbb-s3-backup.sh /usr/local/bin/phpbb-s3-backup
-
-# Add the phpBB auto-update script:
-COPY phpbb-auto-update.sh /usr/local/bin/phpbb-auto-update
 
 ENV \
   BACKUP_SCHEDULE='0 4 * * *' \
@@ -39,8 +49,8 @@ ENV \
   DBUSER=phpbb \
   DBPASSWD=
 
-# Reset the entrypoint to the blueimp/alpine base image default:
-ENTRYPOINT ["tini", "--", "envconfig", "entrypoint"]
+# Start tini and run envconfig:
+ENTRYPOINT ["tini", "--", "envconfig"]
 
 # Run crond in foreground mode with the log level set to 10:
 CMD ["crond", "-f", "-l", "10"]
