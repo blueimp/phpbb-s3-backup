@@ -21,6 +21,8 @@ RUN apk --no-cache add \
     awscli \
   # Clean up obsolete files:
   && rm -rf \
+    # Remove the backwards compatibility wrapper for tini:
+    /usr/bin/tini \
     # Clean up any temporary files:
     /tmp/* \
     # Clean up the pip cache:
