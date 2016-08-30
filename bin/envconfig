@@ -79,7 +79,7 @@ write_envconfig() {
   # Iterate over each line of the config file:
   while read -r line; do
     # Skip empty lines and lines starting with a hash (#):
-    ([ -z "$line" ] || [ "${line#\#}" != "$line" ]) && continue
+    [ -z "$line" ] || [ "${line#\#}" != "$line" ] && continue
     # Extract the substring up to the first space as variable name:
     local name="${line%% *}"
     # Check if the variable should be unset (no exclamation mark prefix):
