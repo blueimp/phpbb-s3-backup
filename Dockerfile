@@ -1,6 +1,6 @@
 # phpBB S3 Backup Dockerfile
 
-FROM alpine:3.4
+FROM alpine
 
 # Upgrade all packages to the latest version:
 RUN apk --no-cache upgrade
