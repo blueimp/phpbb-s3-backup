@@ -2,8 +2,6 @@
 
 FROM alpine:3.4
 
-MAINTAINER Sebastian Tschan <mail@blueimp.net>
-
 RUN apk --no-cache add \
     # tini is a tiny but valid `init` for containers:
     tini \
