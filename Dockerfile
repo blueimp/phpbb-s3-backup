@@ -2,6 +2,9 @@
 
 FROM alpine:3.4
 
+# Upgrade all packages to the latest version:
+RUN apk --no-cache upgrade
+
 RUN apk --no-cache add \
     # tini is a tiny but valid `init` for containers:
     tini \
